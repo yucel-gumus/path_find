@@ -1,39 +1,43 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { createGrid, clearPathAndVisited, generateRandomWalls } from './gridHelpers';
 import { dijkstra, aStar } from './pathfindingAlgorithms';
 
 const AlgorithmSimulator = () => {
   const [grid, setGrid] = useState([]);
-  const [rows, setRows] = useState(15);
-  const [cols, setCols] = useState(15);
+  const rows = 20;
+  const cols = 20;
   const [isRunning, setIsRunning] = useState(false);
   const [speed, setSpeed] = useState(50);
   const [algorithm, setAlgorithm] = useState('astar');
   const [wallDensity, setWallDensity] = useState(20);
   
   const [startNode, setStartNode] = useState({ row: 0, col: 0 });
-  const [endNode, setEndNode] = useState({ row: 14, col: 14 });
+  const [endNode, setEndNode] = useState({ row: 19, col: 19 });
 
   const [isDrawing, setIsDrawing] = useState(false);
   const [dragType, setDragType] = useState(null);
   const [pathFound, setPathFound] = useState(true);
   
+  const [selectedCell, setSelectedCell] = useState(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(true);
+
   const animationTimeoutsRef = useRef([]);
 
-  const initializeGrid = useCallback(() => {
+  const initializeGrid = useCallback((addWalls = true) => {
     const newStartNode = { row: 0, col: 0 };
-    const newEndNode = { row: Math.max(0, rows - 1), col: Math.max(0, cols - 1) };
+    const newEndNode = { row: 19, col: 19 };
     
     setStartNode(newStartNode);
     setEndNode(newEndNode);
 
-    const initialGrid = createGrid(rows, cols, wallDensity, newStartNode, newEndNode);
+    const initialGrid = createGrid(20, 20, wallDensity, newStartNode, newEndNode, addWalls);
     setGrid(initialGrid);
     setPathFound(true);
-  }, [rows, cols, wallDensity]);
+  }, [wallDensity]);
 
   useEffect(() => {
     initializeGrid();
@@ -41,13 +45,13 @@ const AlgorithmSimulator = () => {
     return () => {
       animationTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
     };
-  }, [rows, cols, wallDensity, initializeGrid]);
+  }, [wallDensity, initializeGrid]);
 
   const handleResetGrid = () => {
     if (isRunning) return;
     animationTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
     animationTimeoutsRef.current = [];
-    initializeGrid();
+    initializeGrid(false);
   };
 
   const handleClearPath = () => {
@@ -183,191 +187,255 @@ const AlgorithmSimulator = () => {
     }
   };
 
+  const handleCellHover = (cell) => {
+    setSelectedCell(cell);
+    setShowTooltip(true);
+  };
+
+  const handleCellLeave = () => {
+    setShowTooltip(false);
+  };
+
+  const getNodeType = (type) => {
+    switch(type) {
+      case 'start': return 'Başlangıç Noktası';
+      case 'end': return 'Hedef Noktası';
+      case 'wall': return 'Engel';
+      case 'visited': return 'Ziyaret Edildi';
+      case 'path': return 'En Kısa Yol';
+      default: return 'Boş Hücre';
+    }
+  };
+
   return (
     <motion.div 
-      className="w-full max-w-lg mx-auto bg-[#0F172A] rounded-lg overflow-hidden shadow-2xl border border-[#334155]"
+      className="w-[98vw] h-[98vh] mx-auto bg-[#0F172A] rounded-lg overflow-hidden shadow-2xl border border-[#334155] flex flex-col"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       onMouseLeave={handleMouseUp}
       onMouseUp={handleMouseUp}
     >
-      <div className="flex items-center justify-between bg-[#1E293B] p-3">
-        <div className="text-[#F8FAFC] font-medium">Pathfinding Algoritması</div>
-        <div className="flex space-x-2">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+      <div className="flex items-center justify-between bg-[#1E293B] p-2">
+        <div className="text-[#F8FAFC] font-medium">Pathfinding Algoritması Simülatörü</div>
+        <div className="flex items-center gap-4">
+          <button
+            className="text-[#CBD5E1] text-sm hover:text-white transition-colors"
+            onClick={() => setShowTutorial(true)}
+          >
+            Nasıl Kullanılır?
+          </button>
+          <div className="flex space-x-2">
+            <motion.div whileHover={{ scale: 1.2 }} className="w-2 h-2 rounded-full bg-red-500"></motion.div>
+            <motion.div whileHover={{ scale: 1.2 }} className="w-2 h-2 rounded-full bg-yellow-500"></motion.div>
+            <motion.div whileHover={{ scale: 1.2 }} className="w-2 h-2 rounded-full bg-green-500"></motion.div>
+          </div>
         </div>
       </div>
       
-      <div className="p-4">
-        <div className="mb-4 flex flex-wrap gap-2 justify-center">
-          <select 
-            className="bg-[#1E293B] text-[#F8FAFC] px-3 py-1 rounded border border-[#334155] text-sm focus:ring-blue-500 focus:border-blue-500"
-            value={algorithm}
-            onChange={(e) => setAlgorithm(e.target.value)}
-            disabled={isRunning}
-          >
-            <option value="dijkstra">Dijkstra</option>
-            <option value="astar">A* Algoritması</option>
-          </select>
-          
-          <select 
-            className="bg-[#1E293B] text-[#F8FAFC] px-3 py-1 rounded border border-[#334155] text-sm focus:ring-blue-500 focus:border-blue-500"
-            value={wallDensity}
-            onChange={(e) => setWallDensity(parseInt(e.target.value))}
-            disabled={isRunning}
-          >
-            <option value="0">Engel Yok</option>
-            <option value="10">Az Engel (%10)</option>
-            <option value="20">Orta Engel (%20)</option>
-            <option value="30">Çok Engel (%30)</option>
-            <option value="40">Çok Fazla Engel (%40)</option>
-          </select>
-          
-          <select 
-            className="bg-[#1E293B] text-[#F8FAFC] px-3 py-1 rounded border border-[#334155] text-sm focus:ring-blue-500 focus:border-blue-500"
-            value={speed}
-            onChange={(e) => setSpeed(parseInt(e.target.value))}
-            disabled={isRunning}
-          >
-            <option value="10">Çok Hızlı</option>
-            <option value="50">Normal</option>
-            <option value="100">Yavaş</option>
-            <option value="200">Çok Yavaş</option>
-          </select>
-
-          <div className="flex items-center gap-2">
-            <label htmlFor="rows" className="text-xs text-[#CBD5E1]">Boyut:</label>
-            <input
-              type="number"
-              id="rows"
-              value={rows}
-              onChange={(e) => setRows(Math.max(5, Math.min(30, parseInt(e.target.value) || 5)))}
-              className="w-16 bg-[#1E293B] text-[#F8FAFC] px-2 py-1 rounded border border-[#334155] text-sm text-center"
-              disabled={isRunning}
-              min="5"
-              max="30"
-            />
-            <span className="text-[#CBD5E1] text-sm">x</span>
-            <input
-              type="number"
-              id="cols"
-              value={cols}
-              onChange={(e) => setCols(Math.max(5, Math.min(30, parseInt(e.target.value) || 5)))}
-              className="w-16 bg-[#1E293B] text-[#F8FAFC] px-2 py-1 rounded border border-[#334155] text-sm text-center"
-              disabled={isRunning}
-              min="5"
-              max="30"
-            />
-          </div>
-        </div>
-        
-        <div className="mb-4 text-xs text-[#CBD5E1] flex flex-wrap gap-x-4 gap-y-1 justify-center">
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-blue-700 rounded-sm mr-1"></div>
-            <span>Başlangıç</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-red-700 rounded-sm mr-1"></div>
-            <span>Hedef</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-gray-800 rounded-sm mr-1"></div>
-            <span>Engel</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-yellow-300 rounded-sm mr-1"></div>
-            <span>Ziyaret Edilen</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-green-500 rounded-sm mr-1"></div>
-            <span>En Kısa Yol</span>
-          </div>
-        </div>
-        
-        <div className="mb-4 bg-[#1E293B] p-2 rounded border border-[#334155] overflow-hidden" style={{ minWidth: '200px', minHeight: '200px' }}>
-          <div 
-            style={{ 
-              display: 'grid', 
-              gridTemplateColumns: `repeat(${cols}, 1fr)`, 
-              gap: '2px',
-              width: '100%',
-              aspectRatio: '1/1'
-            }} 
-            className="justify-center"
-          >
-            {grid.flat().map((cell) => {
-              let bgColor = 'bg-[#0F172A]';
-              if (cell.type === 'start') bgColor = 'bg-blue-700';
-              else if (cell.type === 'end') bgColor = 'bg-red-700';
-              else if (cell.type === 'wall') bgColor = 'bg-gray-800';
-              else if (cell.type === 'visited') bgColor = 'bg-yellow-300';
-              else if (cell.type === 'path') bgColor = 'bg-green-500';
-              
-              const cellKey = `${cell.row}-${cell.col}`;
-              return (
-                <div 
-                  key={cellKey} 
-                  className={`${bgColor} rounded-sm transition-colors duration-200 aspect-square`}
-                  onMouseDown={() => handleMouseDown(cell.row, cell.col)}
-                  onMouseEnter={() => handleMouseEnter(cell.row, cell.col)}
-                ></div>
-              );
-            })}
-          </div>
-        </div>
-        {!pathFound && !isRunning && (
+      <AnimatePresence>
+        {showTutorial && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-3 p-2 bg-red-800 text-white text-sm text-center rounded"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="relative bg-[#1E293B] border-t border-b border-[#334155]"
           >
-            Yol Bulunamadı!
           </motion.div>
         )}
+      </AnimatePresence>
+      
+      <div className="flex-1 p-2 flex gap-2 h-full overflow-hidden">
+        {/* Sol Panel - Kontroller */}
+        <div className="w-64 flex flex-col gap-2 bg-[#1E293B] p-3 rounded-lg">
+          <div className="space-y-3">
+            <div className="flex flex-col space-y-2">
+              <label className="text-[#CBD5E1] text-sm">Algoritma Seçimi</label>
+              <select 
+                className="w-full bg-[#0F172A] text-[#F8FAFC] px-2 py-1.5 rounded border border-[#334155] focus:ring-1 focus:ring-blue-500 focus:border-transparent text-sm"
+                value={algorithm}
+                onChange={(e) => setAlgorithm(e.target.value)}
+                disabled={isRunning}
+              >
+                <option value="dijkstra">Dijkstra Algoritması</option>
+                <option value="astar">A* Algoritması</option>
+              </select>
+            </div>
 
-        <div className="flex flex-wrap justify-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-4 py-2 bg-gradient-to-r from-[#0EA5E9] to-[#0369A1] text-white rounded font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={animateAlgorithm}
-            disabled={isRunning}
-          >
-            {isRunning ? 'Çalışıyor...' : 'Algoritmayı Çalıştır'}
-          </motion.button>
-          
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-4 py-2 bg-[#334155] text-white rounded font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleClearPath}
-            disabled={isRunning}
-          >
-            Yolu Temizle
-          </motion.button>
+            <div className="flex flex-col space-y-2">
+              <label className="text-[#CBD5E1] text-sm">Engel Yoğunluğu</label>
+              <select 
+                className="w-full bg-[#0F172A] text-[#F8FAFC] px-2 py-1.5 rounded border border-[#334155] focus:ring-1 focus:ring-blue-500 focus:border-transparent text-sm"
+                value={wallDensity}
+                onChange={(e) => setWallDensity(parseInt(e.target.value))}
+                disabled={isRunning}
+              >
+                <option value="0">Engel Yok</option>
+                <option value="10">Az Engel (%10)</option>
+                <option value="20">Orta Engel (%20)</option>
+                <option value="30">Çok Engel (%30)</option>
+                <option value="40">Çok Fazla Engel (%40)</option>
+              </select>
+            </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-4 py-2 bg-[#334155] text-white rounded font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleGenerateWalls}
-            disabled={isRunning}
-          >
-            Rastgele Duvarlar
-          </motion.button>
+            <div className="flex flex-col space-y-2">
+              <label className="text-[#CBD5E1] text-sm">Animasyon Hızı</label>
+              <select 
+                className="w-full bg-[#0F172A] text-[#F8FAFC] px-2 py-1.5 rounded border border-[#334155] focus:ring-1 focus:ring-blue-500 focus:border-transparent text-sm"
+                value={speed}
+                onChange={(e) => setSpeed(parseInt(e.target.value))}
+                disabled={isRunning}
+              >
+                <option value="10">Çok Hızlı</option>
+                <option value="50">Normal</option>
+                <option value="100">Yavaş</option>
+                <option value="200">Çok Yavaş</option>
+              </select>
+            </div>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-4 py-2 bg-[#334155] text-white rounded font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleResetGrid}
-            disabled={isRunning}
-          >
-            Grid'i Sıfırla
-          </motion.button>
+            <div className="flex flex-col space-y-2">
+              <label className="text-[#CBD5E1] text-sm">Grid Boyutu</label>
+              <div className="bg-[#0F172A] text-[#F8FAFC] px-3 py-2 rounded border border-[#334155] text-center text-sm">
+                20 × 20
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              onClick={animateAlgorithm}
+              disabled={isRunning}
+            >
+              {isRunning ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Çalışıyor...</span>
+                </div>
+              ) : (
+                'Algoritmayı Çalıştır'
+              )}
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full px-4 py-2.5 bg-[#334155] text-white rounded font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleClearPath}
+              disabled={isRunning}
+            >
+              Yolu Temizle
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full px-4 py-2.5 bg-[#334155] text-white rounded font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleGenerateWalls}
+              disabled={isRunning}
+            >
+              Rastgele Duvarlar
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full px-4 py-2.5 bg-[#334155] text-white rounded font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleResetGrid}
+              disabled={isRunning}
+            >
+              Grid'i Sıfırla
+            </motion.button>
+          </div>
+
+          <div className="mt-4">
+            <div className="flex flex-wrap gap-1.5 justify-center bg-[#0F172A] p-2 rounded">
+              {[
+                { color: 'bg-blue-600', text: 'Başlangıç' },
+                { color: 'bg-red-600', text: 'Hedef' },
+                { color: 'bg-black', text: 'Engel' },
+                { color: 'bg-yellow-400', text: 'Ziyaret' },
+                { color: 'bg-green-500', text: 'En Kısa Yol' }
+              ].map(({ color, text }) => (
+                <div key={text} className="flex items-center px-1.5 py-0.5 rounded text-[10px]">
+                  <div className={`w-2 h-2 ${color} rounded-sm mr-1.5`}></div>
+                  <span className="text-[#CBD5E1]">{text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Sağ Panel - Grid */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 bg-[#1E293B] p-3 rounded-lg relative">
+            <div className="h-full flex items-center justify-center">
+              <div 
+                style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(20, 1fr)', 
+                  gap: '1px',
+                  width: 'min(100%, calc(98vh - 80px))',
+                  height: 'min(100%, calc(98vh - 80px))'
+                }}
+              >
+                {grid.flat().map((cell) => {
+                  let bgColor = 'bg-white';
+                  if (cell.type === 'start') bgColor = 'bg-blue-600 hover:bg-blue-500';
+                  else if (cell.type === 'end') bgColor = 'bg-red-600 hover:bg-red-500';
+                  else if (cell.type === 'wall') bgColor = 'bg-black hover:bg-gray-900';
+                  else if (cell.type === 'visited') bgColor = 'bg-yellow-400';
+                  else if (cell.type === 'path') bgColor = 'bg-green-500';
+                  else bgColor = 'bg-white hover:bg-gray-100';
+                  
+                  return (
+                    <motion.div 
+                      key={`${cell.row}-${cell.col}`}
+                      className={`${bgColor} rounded-sm transition-all duration-200 aspect-square cursor-pointer`}
+                      whileHover={{ scale: 1.05 }}
+                      onMouseDown={() => handleMouseDown(cell.row, cell.col)}
+                      onMouseEnter={() => {
+                        handleMouseEnter(cell.row, cell.col);
+                        handleCellHover(cell);
+                      }}
+                      onMouseLeave={handleCellLeave}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {showTooltip && selectedCell && (
+                <motion.div
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 5 }}
+                  className="absolute bg-[#0F172A] text-[#F8FAFC] px-3 py-1 rounded text-sm shadow-lg"
+                  style={{
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    bottom: -30,
+                    zIndex: 10
+                  }}
+                >
+                  {getNodeType(selectedCell.type)} ({selectedCell.row}, {selectedCell.col})
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {!pathFound && !isRunning && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-3 bg-red-900/50 text-red-100 text-sm text-center rounded-lg border border-red-800"
+            >
+              Hedef noktasına ulaşılacak bir yol bulunamadı!
+            </motion.div>
+          )}
         </div>
       </div>
     </motion.div>

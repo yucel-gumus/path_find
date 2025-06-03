@@ -1,5 +1,5 @@
 
-export const createGrid = (rows, cols, wallDensity, startNode, endNode) => {
+export const createGrid = (rows, cols, wallDensity, startNode, endNode, addWalls = true) => {
   const newGrid = [];
   for (let r = 0; r < rows; r++) {
     const row = [];
@@ -10,7 +10,7 @@ export const createGrid = (rows, cols, wallDensity, startNode, endNode) => {
         type = 'start';
       } else if (r === endNode.row && c === endNode.col) {
         type = 'end';
-      } else {
+      } else if (addWalls) {
         const isWall = Math.random() < wallDensity / 100;
         if (isWall) {
           type = 'wall';
