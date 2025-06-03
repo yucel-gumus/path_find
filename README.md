@@ -1,70 +1,131 @@
-# Getting Started with Create React App
+# 🎯 Pathfinding Algoritması Simülatörü
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Bu proje, farklı yol bulma algoritmalarının nasıl çalıştığını interaktif bir şekilde görselleştirmenizi sağlayan bir web uygulamasıdır. Algoritmalar arasındaki farkları gözlemleyebilir ve performanslarını karşılaştırabilirsiniz.
 
-## Available Scripts
+## 🚀 Özellikler
 
-In the project directory, you can run:
+- **6 Farklı Algoritma**:
+  - A* (A-Star) Algoritması
+  - Dijkstra Algoritması
+  - Breadth-First Search (BFS)
+  - Depth-First Search (DFS)
+  - Greedy Best-First Search
+  - Bidirectional BFS
 
-### `npm start`
+- **İnteraktif Grid**:
+  - 20x20 grid sistemi
+  - Sürükle-bırak ile duvar oluşturma
+  - Başlangıç ve bitiş noktalarını taşıma
+  - Rastgele duvar oluşturma
+  - Engel yoğunluğunu ayarlama
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Animasyonlar**:
+  - Algoritmaların çalışmasını adım adım görselleştirme
+  - Ayarlanabilir animasyon hızı
+  - Smooth geçiş efektleri
+  - Hücre hover efektleri
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Kullanıcı Dostu Arayüz**:
+  - Modern ve temiz tasarım
+  - Dark mode
+  - Detaylı tutorial
+  - Responsive layout
 
-### `npm test`
+## 🛠️ Teknolojiler
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- React.js
+- Tailwind CSS
+- Framer Motion
+- JavaScript ES6+
 
-### `npm run build`
+## 📥 Kurulum
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. Repo'yu klonlayın:
+   ```bash
+   git clone https://github.com/yucelgmus/pathfinding-simulator.git
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2. Proje dizinine gidin:
+   ```bash
+   cd pathfinding-simulator
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+3. Bağımlılıkları yükleyin:
+   ```bash
+   npm install
+   ```
 
-### `npm run eject`
+4. Uygulamayı başlatın:
+   ```bash
+   npm start
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🎮 Nasıl Kullanılır?
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1. **Grid Kontrolü**:
+   - Boş hücrelere tıklayıp sürükleyerek duvarlar oluşturabilirsiniz
+   - Mavi başlangıç noktasını sürükleyerek taşıyabilirsiniz
+   - Kırmızı hedef noktasını sürükleyerek taşıyabilirsiniz
+   - "Rastgele Duvarlar" butonu ile rastgele engeller oluşturabilirsiniz
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+2. **Algoritma Seçimi**:
+   - Dropdown menüden istediğiniz algoritmayı seçin
+   - Her algoritmanın kendine özgü avantajları vardır
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+3. **Ayarlar**:
+   - Engel yoğunluğunu %0 ile %40 arasında ayarlayabilirsiniz
+   - Animasyon hızını değiştirebilirsiniz
+   - "Grid'i Sıfırla" ile temiz bir başlangıç yapabilirsiniz
 
-## Learn More
+## 🎨 Renk Kodları
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- 🔵 Mavi: Başlangıç noktası
+- 🔴 Kırmızı: Hedef noktası
+- ⚫ Siyah: Engeller
+- 💛 Sarı: Ziyaret edilen hücreler
+- 💚 Yeşil: Bulunan en kısa yol
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 📚 Algoritma Detayları
 
-### Code Splitting
+1. **A* Algoritması**:
+   - En iyi ilk arama algoritması
+   - Hedef odaklı çalışır
+   - Genellikle en kısa yolu bulur
+   - Heuristic fonksiyon kullanır
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+2. **Dijkstra Algoritması**:
+   - En kısa yolu garantiler
+   - Her yöne eşit maliyetle ilerler
+   - Hedef odaklı değildir
 
-### Analyzing the Bundle Size
+3. **BFS (Breadth-First Search)**:
+   - Grafiği katman katman dolaşır
+   - En kısa yolu garanti eder
+   - Eşit maliyetli yollarda optimal
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+4. **DFS (Depth-First Search)**:
+   - Grafiği derinlemesine dolaşır
+   - En kısa yolu garanti etmez
+   - Labirent çözümünde etkili
 
-### Making a Progressive Web App
+5. **Greedy Best-First Search**:
+   - Sadece hedefe olan mesafeyi dikkate alır
+   - Hızlı çalışır
+   - En kısa yolu garanti etmez
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+6. **Bidirectional BFS**:
+   - İki noktadan eşzamanlı BFS
+   - Normal BFS'den daha hızlı
+   - Karmaşık yollarda etkili
 
-### Advanced Configuration
+## 📝 Lisans
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Bu proje MIT lisansı altında lisanslanmıştır.
 
-### Deployment
+## 👥 Katkıda Bulunma
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. Bu repo'yu fork edin
+2. Yeni bir feature branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Değişikliklerinizi commit edin (`git commit -m 'feat: Add amazing feature'`)
+4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
+5. Bir Pull Request oluşturun

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createGrid, clearPathAndVisited, generateRandomWalls } from './gridHelpers';
-import { dijkstra, aStar } from './pathfindingAlgorithms';
+import { dijkstra, aStar, bfs, dfs, greedyBestFirst, bidirectionalBFS } from './pathfindingAlgorithms';
 
 const AlgorithmSimulator = () => {
   const [grid, setGrid] = useState([]);
@@ -134,10 +134,27 @@ const AlgorithmSimulator = () => {
     const gridCopy = grid.map(row => row.map(cell => ({ ...cell })));
     
     let result;
-    if (algorithm === 'astar') {
-      result = aStar(gridCopy, startNode, endNode, rows, cols);
-    } else {
-      result = dijkstra(gridCopy, startNode, endNode, rows, cols);
+    switch (algorithm) {
+      case 'astar':
+        result = aStar(gridCopy, startNode, endNode, rows, cols);
+        break;
+      case 'dijkstra':
+        result = dijkstra(gridCopy, startNode, endNode, rows, cols);
+        break;
+      case 'bfs':
+        result = bfs(gridCopy, startNode, endNode, rows, cols);
+        break;
+      case 'dfs':
+        result = dfs(gridCopy, startNode, endNode, rows, cols);
+        break;
+      case 'greedy':
+        result = greedyBestFirst(gridCopy, startNode, endNode, rows, cols);
+        break;
+      case 'bidirectional':
+        result = bidirectionalBFS(gridCopy, startNode, endNode, rows, cols);
+        break;
+      default:
+        result = aStar(gridCopy, startNode, endNode, rows, cols);
     }
     
     const { visitedNodesInOrder, path } = result;
@@ -236,11 +253,92 @@ const AlgorithmSimulator = () => {
       <AnimatePresence>
         {showTutorial && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="relative bg-[#1E293B] border-t border-b border-[#334155]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowTutorial(false)}
           >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#1E293B] rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto custom-scrollbar"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-[#F8FAFC]">Nasıl Kullanılır?</h2>
+                <button
+                  onClick={() => setShowTutorial(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="space-y-6 text-[#CBD5E1]">
+                <div>
+                  <h3 className="text-lg font-medium text-[#F8FAFC] mb-2">🎯 Temel Bilgiler</h3>
+                  <p className="text-sm leading-relaxed">
+                    Bu uygulama, farklı yol bulma algoritmalarının çalışma şeklini görsel olarak göstermenizi sağlar.
+                    Grid üzerinde başlangıç noktası (mavi), hedef noktası (kırmızı) ve engeller (siyah) bulunur.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium text-[#F8FAFC] mb-2">🔄 Grid Kontrolü</h3>
+                  <ul className="list-disc list-inside text-sm space-y-2">
+                    <li>Grid üzerinde <span className="text-blue-400">tıklayıp sürükleyerek</span> engeller oluşturabilirsiniz</li>
+                    <li><span className="text-blue-400">Başlangıç</span> ve <span className="text-red-400">hedef</span> noktalarını sürükleyerek yerlerini değiştirebilirsiniz</li>
+                    <li>"Rastgele Duvarlar" butonu ile rastgele engeller oluşturabilirsiniz</li>
+                    <li>"Grid'i Sıfırla" butonu ile tüm engelleri kaldırabilirsiniz</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium text-[#F8FAFC] mb-2">🔍 Algoritmalar</h3>
+                  <div className="space-y-3 text-sm">
+                    <p><span className="font-medium text-[#F8FAFC]">A* Algoritması:</span> En iyi ilk arama algoritmasıdır. Hedef odaklı çalışır ve genellikle en kısa yolu bulur.</p>
+                    <p><span className="font-medium text-[#F8FAFC]">Dijkstra Algoritması:</span> En kısa yolu garantileyen, ancak hedef odaklı olmayan bir algoritma.</p>
+                    <p><span className="font-medium text-[#F8FAFC]">BFS (Breadth-First Search):</span> Grafiği katman katman dolaşır ve en kısa yolu garanti eder.</p>
+                    <p><span className="font-medium text-[#F8FAFC]">DFS (Depth-First Search):</span> Grafiği derinlemesine dolaşır, en kısa yolu garanti etmez.</p>
+                    <p><span className="font-medium text-[#F8FAFC]">Greedy Best-First:</span> Sadece hedefe olan mesafeyi dikkate alır, hızlıdır ama en kısa yolu garanti etmez.</p>
+                    <p><span className="font-medium text-[#F8FAFC]">Bidirectional BFS:</span> İki noktadan eşzamanlı BFS çalıştırır, genellikle daha hızlıdır.</p>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium text-[#F8FAFC] mb-2">⚙️ Ayarlar</h3>
+                  <ul className="list-disc list-inside text-sm space-y-2">
+                    <li>Engel yoğunluğunu %0 ile %40 arasında ayarlayabilirsiniz</li>
+                    <li>Animasyon hızını çok hızlıdan çok yavaşa kadar ayarlayabilirsiniz</li>
+                    <li>Grid boyutu 20x20 olarak sabittir</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium text-[#F8FAFC] mb-2">🎨 Renk Kodları</h3>
+                  <ul className="list-none text-sm space-y-2">
+                    <li className="flex items-center"><div className="w-4 h-4 bg-blue-600 rounded-sm mr-2"></div>Başlangıç noktası</li>
+                    <li className="flex items-center"><div className="w-4 h-4 bg-red-600 rounded-sm mr-2"></div>Hedef noktası</li>
+                    <li className="flex items-center"><div className="w-4 h-4 bg-black rounded-sm mr-2"></div>Engeller</li>
+                    <li className="flex items-center"><div className="w-4 h-4 bg-yellow-400 rounded-sm mr-2"></div>Ziyaret edilen hücreler</li>
+                    <li className="flex items-center"><div className="w-4 h-4 bg-green-500 rounded-sm mr-2"></div>Bulunan en kısa yol</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-6 border-t border-[#334155]">
+                <button
+                  onClick={() => setShowTutorial(false)}
+                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                >
+                  Anladım
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -257,8 +355,12 @@ const AlgorithmSimulator = () => {
                 onChange={(e) => setAlgorithm(e.target.value)}
                 disabled={isRunning}
               >
-                <option value="dijkstra">Dijkstra Algoritması</option>
                 <option value="astar">A* Algoritması</option>
+                <option value="dijkstra">Dijkstra Algoritması</option>
+                <option value="bfs">Breadth-First Search (BFS)</option>
+                <option value="dfs">Depth-First Search (DFS)</option>
+                <option value="greedy">Greedy Best-First Search</option>
+                <option value="bidirectional">Bidirectional BFS</option>
               </select>
             </div>
 
