@@ -3,46 +3,122 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
-    @apply bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen text-gray-100;
+    @apply min-h-screen font-sans text-ink bg-cream-100;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(155, 206, 193, 0.35) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 50% at 90% 100%, rgba(255, 182, 166, 0.4) 0%, transparent 50%),
+      linear-gradient(165deg, #fff9f2 0%, #ffebd3 45%, #f8dcc4 100%);
+  }
+
+  ::selection {
+    background: rgba(155, 206, 193, 0.45);
+    color: #3d342c;
+  }
+}
+
+@layer components {
+  .app-shell {
+    @apply w-[min(98vw,1400px)] h-[min(98vh,920px)] mx-auto flex flex-col overflow-hidden;
+    @apply bg-cream-50/90 backdrop-blur-sm rounded-3xl shadow-lift border border-cream-200/80;
+  }
+
+  .panel {
+    @apply bg-white/55 border border-cream-200/90 shadow-soft rounded-2xl;
+  }
+
+  .panel-coral {
+    @apply bg-coral-50/80 border border-coral-100/90 shadow-soft rounded-2xl;
+  }
+
+  .field-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-muted;
+  }
+
+  .field-select {
+    @apply w-full appearance-none rounded-xl px-3 py-2.5 text-sm font-medium text-ink;
+    @apply bg-cream-50 border border-cream-200 shadow-sm;
+    @apply transition-all duration-150;
+    @apply focus:outline-none focus:ring-2 focus:ring-mint-100 focus:border-mint-200;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%237A6B5D' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    padding-right: 2.25rem;
+  }
+
+  .btn {
+    @apply w-full px-4 py-2.5 rounded-xl text-sm font-semibold tracking-tight;
+    @apply transition-all duration-150 disabled:opacity-45 disabled:cursor-not-allowed;
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-mint-200 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-50;
+  }
+
+  .btn-primary {
+    @apply btn text-ink bg-mint-100 border border-mint-200;
+    @apply hover:bg-mint-200 hover:shadow-soft active:scale-[0.98];
+  }
+
+  .btn-danger {
+    @apply btn text-white bg-coral-300 border border-coral-300;
+    @apply hover:bg-coral-800 active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply btn text-ink bg-coral-50 border border-coral-100;
+    @apply hover:bg-coral-100 active:scale-[0.98];
+  }
+
+  .btn-ghost {
+    @apply btn text-ink-muted bg-transparent border border-cream-200;
+    @apply hover:bg-cream-100 hover:text-ink active:scale-[0.98];
+  }
+
+  .stat-card {
+    @apply rounded-xl px-3 py-2.5 text-center border border-cream-200/90 bg-white/70;
+  }
+
+  .legend-chip {
+    @apply inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium text-ink-muted bg-cream-50 border border-cream-200;
+  }
+
+  .cell-base {
+    @apply aspect-square cursor-pointer select-none touch-none rounded-[3px];
+    @apply transition-[transform,box-shadow,background-color] duration-150;
   }
 }
 
 @layer utilities {
-  .grid-cell {
-    transition: all 0.2s ease-in-out;
-  }
-  
-  .grid-cell:hover {
-    transform: scale(1.1);
-    z-index: 10;
-  }
-
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-gray-800;
+    background: transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-gray-600 rounded-full;
+    background: #ffb6a6;
+    border-radius: 999px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500;
+    background: #f59a88;
   }
 }
 
 .animate-path {
-  animation: path-animation 0.5s ease-out forwards;
+  animation: path-animation 0.45s ease-out forwards;
 }
 
 @keyframes path-animation {
   from {
-    transform: scale(0);
+    transform: scale(0.4);
     opacity: 0;
   }
   to {
@@ -52,16 +128,16 @@
 }
 
 .animate-visited {
-  animation: visited-animation 0.3s ease-out forwards;
+  animation: visited-animation 0.28s ease-out forwards;
 }
 
 @keyframes visited-animation {
   0% {
-    transform: scale(0.3);
+    transform: scale(0.5);
     opacity: 0;
   }
-  50% {
-    transform: scale(1.2);
+  60% {
+    transform: scale(1.08);
   }
   100% {
     transform: scale(1);

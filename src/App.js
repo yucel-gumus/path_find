@@ -4,7 +4,7 @@ import './index.css';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-2 sm:p-4">
       <AlgorithmSimulator />
     </div>
   );
